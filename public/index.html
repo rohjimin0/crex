@@ -1,0 +1,2158 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>재고관리 시스템</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+</head>
+<body>
+<div id="app">
+
+  <!-- ══ 로그인 ══════════════════════════════════════════════ -->
+  <div id="screen-login" class="screen">
+    <div class="auth-card">
+      <div class="auth-logo">📦</div>
+      <h1 class="auth-title">재고관리 시스템</h1>
+      <form id="form-login" autocomplete="off">
+        <div class="field">
+          <label>아이디</label>
+          <input id="login-id" type="text" placeholder="아이디 입력" required />
+        </div>
+        <div class="field">
+          <label>비밀번호</label>
+          <input id="login-pw" type="password" placeholder="비밀번호" required />
+        </div>
+        <div id="login-err" class="msg-error hidden"></div>
+        <button type="submit" class="btn btn-primary w-full mt-8">로그인</button>
+      </form>
+      <p class="auth-footer">
+        계정이 없으신가요?
+        <a href="#" id="go-register">회원가입 신청</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- ══ 회원가입 ════════════════════════════════════════════ -->
+  <div id="screen-register" class="screen">
+    <div class="auth-card">
+      <div class="auth-logo">✍️</div>
+      <h1 class="auth-title">회원가입 신청</h1>
+      <form id="form-register" autocomplete="off">
+        <div class="field">
+          <label>이름</label>
+          <input id="reg-name" type="text" placeholder="실명 입력" required />
+        </div>
+        <div class="field">
+          <label>아이디 <span class="hint">영문, 숫자, 밑줄(_) 3자 이상</span></label>
+          <input id="reg-username" type="text" placeholder="아이디 입력" required />
+          <div id="username-err" class="msg-error hidden"></div>
+        </div>
+        <div class="field">
+          <label>비밀번호</label>
+          <input id="reg-pw" type="password" placeholder="6자 이상" required />
+        </div>
+        <div class="field">
+          <label>비밀번호 확인</label>
+          <input id="reg-pw2" type="password" placeholder="비밀번호 재입력" required />
+          <div id="pw2-err" class="msg-error hidden"></div>
+        </div>
+        <div id="reg-msg" class="hidden"></div>
+        <button type="submit" class="btn btn-primary w-full mt-8">가입 신청</button>
+      </form>
+      <p class="auth-footer"><a href="#" id="go-login">← 로그인으로 돌아가기</a></p>
+    </div>
+  </div>
+
+  <!-- ══ 메인 앱 ══════════════════════════════════════════════ -->
+  <div id="screen-main" class="screen layout">
+
+    <!-- 사이드바 -->
+    <nav id="sidebar">
+      <div class="sidebar-top">
+        <span class="sidebar-logo">📦 재고관리</span>
+      </div>
+
+      <ul class="nav-list" id="nav-list">
+        <li><a class="nav-link active" data-page="dashboard">
+          <span class="nav-icon">📊</span><span class="nav-text">대시보드</span>
+        </a></li>
+        <li class="nav-inventory"><a class="nav-link" data-page="inventory">
+          <span class="nav-icon">🗃️</span><span class="nav-text">재고 현황</span>
+        </a></li>
+        <li class="nav-editor"><a class="nav-link" data-page="inbound">
+          <span class="nav-icon">📥</span><span class="nav-text">입고관리</span>
+        </a></li>
+        <li class="nav-editor"><a class="nav-link" data-page="outbound">
+          <span class="nav-icon">📤</span><span class="nav-text">출고 관리</span>
+        </a></li>
+        <li class="nav-editor"><a class="nav-link" data-page="returns">
+          <span class="nav-icon">🔄</span><span class="nav-text">반품/불량</span>
+        </a></li>
+        <li class="nav-editor"><a class="nav-link" data-page="purchase-vendors">
+          <span class="nav-icon">🏢</span><span class="nav-text">매입거래처 관리</span>
+        </a></li>
+        <li class="nav-editor"><a class="nav-link" data-page="sales-vendors">
+          <span class="nav-icon">🏪</span><span class="nav-text">출고거래처 관리</span>
+        </a></li>
+        <li class="nav-editor"><a class="nav-link" data-page="sales">
+          <span class="nav-icon">💰</span><span class="nav-text">매출/수익</span>
+        </a></li>
+        <li class="nav-admin"><a class="nav-link" data-page="users">
+          <span class="nav-icon">👥</span><span class="nav-text">사용자 관리</span>
+        </a></li>
+        <li class="nav-admin"><a class="nav-link" data-page="trash">
+          <span class="nav-icon">🗑️</span><span class="nav-text">휴지통</span>
+        </a></li>
+        <li class="nav-admin"><a class="nav-link" data-page="audit-log">
+          <span class="nav-icon">📋</span><span class="nav-text">감사로그</span>
+        </a></li>
+        <li><a class="nav-link" data-page="company">
+          <span class="nav-icon">🏢</span><span class="nav-text">회사 정보</span>
+        </a></li>
+        <li><a class="nav-link" data-page="profile">
+          <span class="nav-icon">👤</span><span class="nav-text">내 정보</span>
+        </a></li>
+      </ul>
+
+      <div class="sidebar-bottom">
+        <div class="user-badge">
+          <span id="sb-user-name">-</span>
+          <span id="sb-user-role" class="role-chip"></span>
+        </div>
+        <button id="btn-logout" class="btn btn-sm btn-ghost">로그아웃</button>
+      </div>
+    </nav>
+
+    <!-- 콘텐츠 -->
+    <div class="content-wrap">
+      <!-- 상단 헤더 -->
+      <header class="top-header">
+        <div class="top-header-left">
+          <span id="page-title">대시보드</span>
+        </div>
+        <div class="top-header-right">
+          <span id="hdr-user">-</span>
+          <span id="hdr-role" class="role-chip"></span>
+        </div>
+      </header>
+
+      <!-- 페이지 영역 -->
+      <main id="pages">
+
+        <!-- 대시보드 -->
+        <div id="page-dashboard" class="page active">
+          <div class="db-wrap">
+
+            <!-- 로딩 -->
+            <div id="db-loading" class="db-loading">
+              <div class="db-spinner"></div>
+              <span>데이터 불러오는 중...</span>
+            </div>
+
+            <!-- 메인 콘텐츠 -->
+            <div id="db-content" class="hidden">
+
+              <!-- ① KPI 카드 (editor/admin only) -->
+              <div class="db-kpi-grid db-editor-only" id="db-kpi-grid">
+                <div class="db-kpi-card">
+                  <div class="db-kpi-label">오늘 순수익</div>
+                  <div class="db-kpi-value" id="db-kpi-today-val">—</div>
+                  <div class="db-kpi-diff"  id="db-kpi-today-diff"></div>
+                  <div class="db-kpi-sub">어제 대비</div>
+                </div>
+                <div class="db-kpi-card">
+                  <div class="db-kpi-label">이번주 순수익</div>
+                  <div class="db-kpi-value" id="db-kpi-week-val">—</div>
+                  <div class="db-kpi-diff"  id="db-kpi-week-diff"></div>
+                  <div class="db-kpi-sub">저번주 동기간 대비</div>
+                </div>
+                <div class="db-kpi-card">
+                  <div class="db-kpi-label">이번달 순수익</div>
+                  <div class="db-kpi-value" id="db-kpi-mprofit-val">—</div>
+                  <div class="db-kpi-diff"  id="db-kpi-mprofit-diff"></div>
+                  <div class="db-kpi-sub">저번달 동기간 대비</div>
+                </div>
+                <div class="db-kpi-card db-kpi-sales">
+                  <div class="db-kpi-label">이번달 매출</div>
+                  <div class="db-kpi-value" id="db-kpi-msales-val">—</div>
+                  <div class="db-kpi-diff"  id="db-kpi-msales-diff"></div>
+                  <div class="db-kpi-sub">저번달 동기간 대비</div>
+                </div>
+              </div>
+
+              <!-- ② 차트 행 (editor/admin only) -->
+              <div class="db-charts-row db-editor-only">
+                <div class="db-chart-card">
+                  <div class="db-chart-title">이번주 vs 저번주 순수익 비교</div>
+                  <div class="db-chart-wrap"><canvas id="db-chart-weekly"></canvas></div>
+                </div>
+                <div class="db-chart-card">
+                  <div class="db-chart-title">월별 순수익 추이 (최근 6개월)</div>
+                  <div class="db-chart-wrap"><canvas id="db-chart-monthly"></canvas></div>
+                </div>
+              </div>
+
+              <!-- ③ 날짜 검색 (editor/admin only) -->
+              <div class="db-range-card db-editor-only">
+                <div class="db-range-header">기간별 상세 조회</div>
+                <div class="db-range-controls">
+                  <input type="text" id="db-from" class="form-control" placeholder="시작일" style="width:130px">
+                  <span class="db-range-sep">~</span>
+                  <input type="text" id="db-to"   class="form-control" placeholder="종료일" style="width:130px">
+                  <button class="btn btn-ghost btn-sm" id="btn-db-today">오늘</button>
+                  <button class="btn btn-ghost btn-sm" id="btn-db-week">이번주</button>
+                  <button class="btn btn-ghost btn-sm" id="btn-db-month">이번달</button>
+                  <button class="btn btn-ghost btn-sm" id="btn-db-lastmonth">저번달</button>
+                  <button class="btn btn-primary btn-sm" id="btn-db-search">조회</button>
+                </div>
+                <div class="db-range-result hidden" id="db-range-result"></div>
+              </div>
+
+              <!-- ④⑤ 하단 행 -->
+              <div class="db-bottom-row">
+
+                <!-- 오늘 현황 -->
+                <div class="db-status-card">
+                  <div class="db-card-title">오늘 현황 요약</div>
+                  <div class="db-status-grid">
+                    <div class="db-stat-item db-editor-only">
+                      <span class="db-stat-label">오늘 입고</span>
+                      <span class="db-stat-val" id="db-s-inbound">—</span>
+                    </div>
+                    <div class="db-stat-item db-editor-only">
+                      <span class="db-stat-label">오늘 출고</span>
+                      <span class="db-stat-val" id="db-s-outbound">—</span>
+                    </div>
+                    <div class="db-stat-item db-editor-only">
+                      <span class="db-stat-label">오늘 반품/교환</span>
+                      <span class="db-stat-val" id="db-s-return">—</span>
+                    </div>
+                    <div class="db-stat-item">
+                      <span class="db-stat-label">전체 재고 품목</span>
+                      <span class="db-stat-val" id="db-s-stock">—</span>
+                    </div>
+                    <div class="db-stat-item">
+                      <span class="db-stat-label">불량/폐기/검사대기</span>
+                      <span class="db-stat-val db-val-warn" id="db-s-defective">—</span>
+                    </div>
+                    <div class="db-stat-item db-editor-only">
+                      <span class="db-stat-label">매입미완료</span>
+                      <span class="db-stat-val db-val-warn" id="db-s-pending">—</span>
+                    </div>
+                    <div class="db-stat-item db-admin-only">
+                      <span class="db-stat-label">승인대기 회원</span>
+                      <span class="db-stat-val db-val-danger" id="db-s-users">—</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 최근 활동 -->
+                <div class="db-activity-card">
+                  <div class="db-card-title">최근 활동 내역</div>
+                  <div class="db-activity-list" id="db-activity-list">
+                    <div class="empty">불러오는 중...</div>
+                  </div>
+                </div>
+
+              </div>
+            </div><!-- /db-content -->
+          </div><!-- /db-wrap -->
+        </div>
+
+        <!-- ══ 재고 현황 ══ -->
+        <div id="page-inventory" class="page">
+
+          <!-- 요약 대시보드 -->
+          <div class="inv-summary-bar" id="inv-summary-bar">
+            <div class="inv-sum-item">
+              <span class="inv-sum-label">전체 품목</span>
+              <span class="inv-sum-val" id="invs-items">-</span>
+            </div>
+            <div class="inv-sum-item">
+              <span class="inv-sum-label">전체 재고</span>
+              <span class="inv-sum-val" id="invs-stock">-</span>
+            </div>
+            <div class="inv-sum-item">
+              <span class="inv-sum-label">⚠ 임시매입 포함</span>
+              <span class="inv-sum-val" id="invs-temp">-</span>
+            </div>
+            <div class="inv-sum-item">
+              <span class="inv-sum-label">불량 보유</span>
+              <span class="inv-sum-val" id="invs-def">-</span>
+            </div>
+            <div class="inv-sum-item">
+              <span class="inv-sum-label">폐기 보유</span>
+              <span class="inv-sum-val" id="invs-dis">-</span>
+            </div>
+            <div class="inv-sum-item">
+              <span class="inv-sum-label">매입미완료</span>
+              <span class="inv-sum-val" id="invs-pend">-</span>
+            </div>
+          </div>
+
+          <!-- 툴바 -->
+          <div class="page-toolbar" style="margin-top:.6rem;flex-wrap:wrap;gap:.4rem">
+            <input id="inv-search-cat"   type="text" class="form-control inv-search-inp" placeholder="구분"   style="width:90px" />
+            <input id="inv-search-brand" type="text" class="form-control inv-search-inp" placeholder="브랜드" style="width:100px" />
+            <input id="inv-search-model" type="text" class="form-control inv-search-inp" placeholder="모델명" style="width:160px" />
+            <input id="inv-search-vendor"type="text" class="form-control inv-search-inp" placeholder="거래처" style="width:110px" />
+            <button class="btn btn-ghost btn-xs" id="btn-inv-search-clear" title="검색 초기화">✕</button>
+            <div style="flex:1"></div>
+            <button class="btn btn-ghost" id="btn-inv-refresh" title="최신 데이터 불러오기">🔄 새로고침</button>
+            <button class="btn btn-secondary" id="btn-inv-adjust">재고조정</button>
+            <button class="btn btn-ghost" id="btn-inv-excel">엑셀 다운로드</button>
+          </div>
+
+          <!-- 필터 탭 -->
+          <div class="tab-bar" style="margin:.4rem 0">
+            <button class="tab-btn active" data-invtab="all">전체 <span class="tab-count" id="invtab-all">0</span></button>
+            <button class="tab-btn" data-invtab="normal">정상재고 <span class="tab-count" id="invtab-normal">0</span></button>
+            <button class="tab-btn" data-invtab="defective">불량재고 <span class="tab-count" id="invtab-defective">0</span></button>
+            <button class="tab-btn" data-invtab="disposal">폐기재고 <span class="tab-count" id="invtab-disposal">0</span></button>
+            <button class="tab-btn" data-invtab="smartstore">🛒 스마트스토어 <span class="tab-count" id="invtab-smartstore">0</span></button>
+          </div>
+
+          <!-- 구분 필터 -->
+          <div class="inv-cat-filter-bar">
+            <button class="inv-cat-btn active" data-catfilter="all">전체 <span id="icf-all">0</span></button>
+            <button class="inv-cat-btn" data-catfilter="CPU"  style="--icb-bg:#e0f6ff;--icb-col:#0369a1">CPU <span id="icf-CPU">0</span></button>
+            <button class="inv-cat-btn" data-catfilter="RAM"  style="--icb-bg:#d1fae5;--icb-col:#047857">RAM <span id="icf-RAM">0</span></button>
+            <button class="inv-cat-btn" data-catfilter="VGA"  style="--icb-bg:#ffedd5;--icb-col:#c2410c">VGA <span id="icf-VGA">0</span></button>
+            <button class="inv-cat-btn" data-catfilter="SSD"  style="--icb-bg:#dbeafe;--icb-col:#1d4ed8">SSD <span id="icf-SSD">0</span></button>
+            <button class="inv-cat-btn" data-catfilter="NVMe" style="--icb-bg:#ede9fe;--icb-col:#6d28d9">NVMe <span id="icf-NVMe">0</span></button>
+            <button class="inv-cat-btn" data-catfilter="M.2"  style="--icb-bg:#fce7f3;--icb-col:#be185d">M.2 <span id="icf-M2">0</span></button>
+            <button class="inv-cat-btn" data-catfilter="HDD"  style="--icb-bg:#fef9c3;--icb-col:#92400e">HDD <span id="icf-HDD">0</span></button>
+            <button class="inv-cat-btn" data-catfilter="MB"   style="--icb-bg:#fee2e2;--icb-col:#dc2626">MB <span id="icf-MB">0</span></button>
+            <button class="inv-cat-btn" data-catfilter="노트북" style="--icb-bg:#ecfdf5;--icb-col:#047857">노트북 <span id="icf-노트북">0</span></button>
+            <button class="inv-cat-btn" data-catfilter="모니터" style="--icb-bg:#cffafe;--icb-col:#0e7490">모니터 <span id="icf-모니터">0</span></button>
+            <button class="inv-cat-btn" data-catfilter="본체"  style="--icb-bg:#e0e7ff;--icb-col:#4338ca">본체 <span id="icf-본체">0</span></button>
+            <button class="inv-cat-btn" data-catfilter="PW"    style="--icb-bg:#ecfccb;--icb-col:#4d7c0f">PW <span id="icf-PW">0</span></button>
+            <button class="inv-cat-btn" data-catfilter="기타" style="--icb-bg:#f1f5f9;--icb-col:#475569">기타 <span id="icf-기타">0</span></button>
+          </div>
+
+          <!-- 필터 상태 표시 -->
+          <div id="inv-filter-status" class="inv-filter-status hidden">
+            <span id="inv-filter-status-text"></span>
+            <button id="btn-inv-filter-reset" class="inv-filter-reset-btn">필터 초기화</button>
+          </div>
+
+          <!-- 테이블 -->
+          <div class="dual-scroll-top" id="inv-scroll-top"><div class="dual-scroll-inner"></div></div>
+          <div class="dual-scroll-wrap" id="inv-table-wrap" style="max-height:calc(100vh - 280px)">
+            <table class="data-table inv-table" id="inv-table">
+              <thead>
+                <tr>
+                  <th>구분</th>
+                  <th>브랜드</th>
+                  <th>모델명</th>
+                  <th class="inv-col-spec">스펙</th>
+                  <th class="inv-col-spec">상태</th>
+                  <th>현재재고</th>
+                  <th>매입완료</th>
+                  <th>우선등록 ⚠️</th>
+                  <th>매입미완료</th>
+                  <th>총입고</th>
+                  <th>총출고</th>
+                  <th class="price-col">평균매입가</th>
+                  <th>최근거래처</th>
+                  <th>비고</th>
+                  <th>🛒</th>
+                </tr>
+              </thead>
+              <tbody id="inv-tbody">
+                <tr><td colspan="15" class="empty">조회 중...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 재고조정 모달 -->
+          <div id="modal-inv-adjust" class="modal-backdrop hidden">
+            <div class="modal-box" style="max-width:520px">
+              <div class="modal-header">
+                <h3>재고조정</h3>
+                <button class="btn btn-ghost btn-xs" id="btn-inv-adjust-close">✕</button>
+              </div>
+              <div class="modal-body inv-adj-body">
+                <div class="form-row-2">
+                  <div class="field">
+                    <label>조정일자 <span class="req">*</span></label>
+                    <input id="adj-date" type="text" class="form-control" readonly placeholder="날짜 선택" />
+                  </div>
+                  <div class="field">
+                    <label>조정유형 <span class="req">*</span></label>
+                    <select id="adj-type" class="form-control">
+                      <option value="shortage">실사조정(부족) — 수량 차감</option>
+                      <option value="surplus">실사조정(초과) — 수량 증가</option>
+                      <option value="temp_purchase">임의매입(임시) ⚠️</option>
+                      <option value="confirm_purchase">임의매입(확정)</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-row-3">
+                  <div class="field">
+                    <label>구분</label>
+                    <input id="adj-category" type="text" class="form-control" placeholder="구분" />
+                  </div>
+                  <div class="field">
+                    <label>브랜드 <span class="req">*</span></label>
+                    <input id="adj-manufacturer" type="text" class="form-control" placeholder="브랜드" />
+                  </div>
+                  <div class="field">
+                    <label>모델명 <span class="req">*</span></label>
+                    <input id="adj-model" type="text" class="form-control" placeholder="모델명" />
+                  </div>
+                </div>
+                <div class="form-row-2">
+                  <div class="field">
+                    <label>스펙</label>
+                    <input id="adj-spec" type="text" class="form-control" placeholder="스펙 (없으면 빈칸)" />
+                  </div>
+                  <div class="field">
+                    <label>조정수량 <span class="req">*</span></label>
+                    <input id="adj-qty" type="number" class="form-control" min="1" placeholder="수량" />
+                  </div>
+                </div>
+                <!-- 임시매입가 (temp_purchase만) -->
+                <div class="field" id="adj-temp-price-wrap">
+                  <label>임시매입가 <span class="req">*</span></label>
+                  <input id="adj-temp-price" type="number" class="form-control" min="0" placeholder="임시 매입가 (원)" />
+                </div>
+                <!-- 확정매입가 (confirm_purchase만) -->
+                <div class="field hidden" id="adj-conf-price-wrap">
+                  <label>확정매입가 <span class="req">*</span></label>
+                  <input id="adj-conf-price" type="number" class="form-control" min="0" placeholder="확정 매입가 (원)" />
+                  <div id="adj-pending-temps" style="margin-top:.4rem;font-size:.8rem;color:var(--gray-600)"></div>
+                </div>
+                <div class="field">
+                  <label>사유 <span class="req">*</span></label>
+                  <input id="adj-reason" type="text" class="form-control" placeholder="조정 사유 입력" />
+                </div>
+                <div style="font-size:.8rem;color:var(--gray-600)">
+                  처리자: <span id="adj-performer">-</span>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button class="btn btn-ghost" id="btn-adj-cancel">취소</button>
+                <button class="btn btn-primary" id="btn-adj-save">저장</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 재고 상세 팝업 -->
+          <div id="modal-inv-detail" class="modal-backdrop hidden">
+            <div class="modal-box inv-detail-box">
+              <div class="modal-header">
+                <h3 id="inv-detail-title">재고 상세</h3>
+                <button class="btn btn-ghost btn-xs" id="btn-inv-detail-close">✕</button>
+              </div>
+              <div class="inv-detail-body">
+                <!-- 탭 -->
+                <div class="tab-bar inv-dtab-bar">
+                  <button class="tab-btn active" data-dtab="inbound">입고 이력</button>
+                  <button class="tab-btn" data-dtab="outbound">출고 이력</button>
+                  <button class="tab-btn" data-dtab="returns">반품/교환</button>
+                  <button class="tab-btn" data-dtab="adjustments">재고조정</button>
+                  <button class="tab-btn price-col" data-dtab="avg_history">평균매입가</button>
+                </div>
+                <div id="inv-detail-content" class="inv-detail-content"></div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /#page-inventory -->
+
+        <!-- 입고 관리 -->
+        <div id="page-inbound" class="page">
+
+          <!-- ── 서브: 매입 목록 ── -->
+          <div id="ib-list">
+            <div class="page-toolbar">
+              <span id="ib-list-title" style="font-weight:700;font-size:.95rem"></span>
+              <div style="flex:1"></div>
+              <button class="btn btn-primary" id="btn-ib-new">+ 매입 등록</button>
+            </div>
+            <!-- 날짜 범위 + 키워드 검색 -->
+            <div class="ib-filter-bar">
+              <div class="ib-date-range">
+                <input id="ib-date-start" type="text" class="ib-date-inp" placeholder="시작일" autocomplete="off" />
+                <span class="ib-range-sep">~</span>
+                <input id="ib-date-end" type="text" class="ib-date-inp" placeholder="종료일" autocomplete="off" />
+                <button class="ib-quick-btn" data-range="today">오늘</button>
+                <button class="ib-quick-btn" data-range="week">이번주</button>
+                <button class="ib-quick-btn" data-range="month">이번달</button>
+                <button class="ib-quick-btn ib-quick-clear" data-range="clear">초기화</button>
+              </div>
+              <input id="ib-search" type="text" class="search-input ib-keyword-inp"
+                placeholder="거래처, 모델명, 브랜드, 구분..." />
+            </div>
+            <!-- 상태 필터 버튼 (항상 표시) -->
+            <div class="ib-status-tabs" id="ib-status-tabs">
+              <button class="ib-stab active" data-stab="all">전체(<span id="ib-stab-count-all">0</span>)</button>
+              <button class="ib-stab" data-stab="completed">매입완료(<span id="ib-stab-count-completed">0</span>)</button>
+              <button class="ib-stab" data-stab="pending">매입미완료(<span id="ib-stab-count-pending">0</span>)</button>
+              <button class="ib-stab" data-stab="priority">우선등록(<span id="ib-stab-count-priority">0</span>)</button>
+            </div>
+            <div id="ib-cards"><div class="empty">로딩 중...</div></div>
+          </div>
+
+          <!-- ── 서브: 매입 상세 ── -->
+          <div id="ib-detail" class="hidden">
+            <div class="page-toolbar">
+              <button class="btn btn-ghost" id="btn-ib-back-detail">← 목록으로</button>
+              <div style="flex:1"></div>
+              <button class="btn btn-ghost"   id="btn-ib-excel-dl">📥 엑셀</button>
+              <button class="btn btn-primary" id="btn-ib-edit">수정</button>
+              <button class="btn btn-danger"  id="btn-ib-delete">삭제</button>
+            </div>
+            <!-- 메모 -->
+            <div class="ib-memo-card">
+              <div class="ib-memo-header">
+                <span class="ib-memo-title">📝 메모</span>
+                <span id="ib-memo-meta" class="ib-memo-meta"></span>
+                <div style="flex:1"></div>
+                <button class="btn btn-xs btn-ghost" id="btn-ib-memo-toggle">접기</button>
+              </div>
+              <div id="ib-memo-body">
+                <textarea id="ib-memo-text" class="ib-memo-textarea"
+                  placeholder="이 매입건에 대한 메모를 입력하세요..."></textarea>
+              </div>
+            </div>
+            <div id="ib-detail-content"></div>
+          </div>
+
+          <!-- ── 서브: 매입 등록/수정 ── -->
+          <div id="ib-form" class="hidden">
+            <div class="page-toolbar">
+              <button class="btn btn-ghost" id="btn-ib-back-form">← 목록으로</button>
+              <div style="flex:1"></div>
+              <h3 id="ib-form-title" style="font-size:.95rem;font-weight:700">매입 등록</h3>
+              <button class="btn btn-primary" id="btn-ib-save-top" type="button">저장</button>
+            </div>
+
+            <!-- 헤더 입력 -->
+            <div class="ib-header-card">
+              <div class="form-row-3">
+                <div class="field">
+                  <label>입고날짜 <span class="req">*</span></label>
+                  <input id="ib-date" type="text" placeholder="날짜 선택" autocomplete="off" />
+                </div>
+                <div class="field">
+                  <label>거래처</label>
+                  <div class="ib-vendor-wrap">
+                    <input id="ib-vendor-name" type="text" placeholder="이름 또는 회사명 검색..." autocomplete="off" />
+                    <div id="ib-vendor-dropdown" class="ib-vendor-dd hidden"></div>
+                  </div>
+                  <input type="hidden" id="ib-vendor-id" />
+                </div>
+                <div class="field">
+                  <label>매입상태 (전체 적용)</label>
+                  <div class="ib-bulk-btns">
+                    <button type="button" class="ib-bulk-btn active" data-status="pending">매입미완료</button>
+                    <button type="button" class="ib-bulk-btn" data-status="completed">매입완료</button>
+                    <button type="button" class="ib-bulk-btn" data-status="priority">⚠️ 우선등록</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 입력 탭 -->
+            <div class="tabs ib-form-tabs">
+              <button class="tab active" data-ib-tab="excel">엑셀 업로드</button>
+              <button class="tab" data-ib-tab="direct">직접 입력</button>
+            </div>
+
+            <!-- 엑셀 탭 -->
+            <div id="ib-tab-excel" class="ib-tab-content">
+              <!-- 파일 선택 + 양식 다운로드 -->
+              <div class="ib-excel-bar">
+                <label class="btn btn-ghost" for="ib-excel-file" style="cursor:pointer">📂 파일 선택</label>
+                <input type="file" id="ib-excel-file" accept=".xlsx,.xls,.csv" style="display:none" />
+                <div class="ib-template-wrap">
+                  <button class="btn btn-ghost" id="btn-ib-template" type="button">⬇ 양식 다운로드</button>
+                  <div class="ib-template-note">
+                    ※ 다운로드 후 <b>2행부터</b> 데이터를 입력해주세요.<br>
+                    1행(헤더)은 수정하지 마세요.
+                  </div>
+                </div>
+                <span id="ib-excel-filename" style="color:var(--gray-600);font-size:.82rem;margin-left:.3rem"></span>
+              </div>
+
+              <!-- 시각적 안내표 -->
+              <div class="ib-excel-guide">
+                <table class="ib-excel-visual">
+                  <thead>
+                    <tr>
+                      <th class="ev-rn"></th>
+                      <th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th><th>H</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="ev-header">
+                      <td class="ev-rn">1</td>
+                      <td>구분</td><td>브랜드</td><td>모델명</td><td>수량</td><td>매입가</td><td>처리구분</td><td>스펙</td><td>비고</td>
+                      <td class="ev-badge ev-badge-lock">🔒 수정금지</td>
+                    </tr>
+                    <tr class="ev-data-first">
+                      <td class="ev-rn ev-arrow">2 ➜</td>
+                      <td>RAM</td><td>삼성</td><td>DDR4 16G</td><td>5</td><td>15,000</td><td></td><td></td><td></td>
+                      <td class="ev-badge ev-badge-start">✏️ 여기부터 입력</td>
+                    </tr>
+                    <tr class="ev-data">
+                      <td class="ev-rn">3</td>
+                      <td>노트북</td><td>LG</td><td>그램</td><td>1</td><td>800,000</td><td>불량</td><td>i5 16G</td><td></td>
+                      <td></td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div class="ib-excel-tips">
+                  <span>💡 <b>스펙</b>: 노트북 등 스펙이 다른 상품만 입력 (없으면 빈칸 → 일반상품)</span>
+                  <span>💡 <b>처리구분</b>: 빈칸(정상) / 불량 / 폐기 입력 가능</span>
+                  <span>💡 <b>매입가</b> 0원 입력 가능</span>
+                  <span>💡 수량·매입가는 <b>숫자만</b> 입력해주세요.</span>
+                </div>
+              </div>
+
+              <!-- 오류 표시 -->
+              <div id="ib-excel-error-bar" class="hidden ib-excel-error-bar"></div>
+
+              <!-- 미리보기 -->
+              <div id="ib-excel-preview" class="hidden">
+                <div class="ib-tbl-scroll-top" id="ib-excel-tbl-scroll-top"><div class="ib-tbl-scroll-inner"></div></div>
+                <div class="table-wrap ib-form-table-wrap">
+                  <table class="tbl">
+                    <colgroup>
+                      <col style="width:40px">
+                      <col style="width:70px">
+                      <col style="width:100px">
+                      <col style="width:150px">
+                      <col style="width:120px">
+                      <col style="width:65px">
+                      <col style="width:100px">
+                      <col style="width:100px">
+                      <col style="width:75px">
+                      <col style="width:100px">
+                      <col style="width:140px">
+                    </colgroup>
+                    <thead>
+                      <tr>
+                        <th>#</th><th>구분</th><th>브랜드</th><th>모델명</th>
+                        <th>수량</th><th>매입가</th><th>합계</th><th>처리구분</th><th>스펙</th><th>매입상태</th><th>비고</th>
+                      </tr>
+                    </thead>
+                    <tbody id="ib-excel-tbody"></tbody>
+                  </table>
+                </div>
+                <div class="ib-form-footer">
+                  <span id="ib-excel-total" class="ib-total-summary"></span>
+                  <div style="display:flex;gap:.5rem">
+                    <button class="btn btn-ghost" id="btn-ib-excel-add-new" type="button" style="display:none">추가 등록</button>
+                    <button class="btn btn-primary" id="btn-ib-excel-save" type="button">일괄 등록</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 직접 입력 탭 -->
+            <div id="ib-tab-direct" class="ib-tab-content hidden">
+              <div class="ib-direct-bar">
+                <label style="font-size:.875rem;font-weight:600">행 수</label>
+                <input id="ib-row-count" type="number" min="1" max="200" value="5"
+                  style="width:4.5rem;padding:.35rem .5rem;border:1px solid var(--gray-400);border-radius:6px;font-size:.875rem" />
+                <button class="btn btn-sm btn-ghost" id="btn-ib-set-rows" type="button">확인</button>
+              </div>
+              <div class="ib-tbl-scroll-top" id="ib-direct-tbl-scroll-top"><div class="ib-tbl-scroll-inner"></div></div>
+              <div class="ib-form-table-wrap" id="ib-direct-table-wrap">
+                <table class="tbl">
+                  <colgroup>
+                    <col style="width:35px">
+                    <col style="width:70px">
+                    <col style="width:100px">
+                    <col style="width:150px">
+                    <col style="width:95px">
+                    <col style="width:120px">
+                    <col style="width:65px">
+                    <col style="width:100px">
+                    <col style="width:80px">
+                    <col style="width:90px">
+                    <col style="width:100px">
+                    <col style="width:150px">
+                  </colgroup>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>구분</th>
+                      <th>브랜드</th>
+                      <th>모델명 *</th>
+                      <th>상품유형</th>
+                      <th>스펙</th>
+                      <th>수량 *</th>
+                      <th>매입가 *</th>
+                      <th>합계</th>
+                      <th>처리구분</th>
+                      <th>매입상태</th>
+                      <th>비고</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ib-direct-tbody"></tbody>
+                </table>
+              </div>
+              <datalist id="ib-spec-datalist"></datalist>
+              <div class="ib-form-footer">
+                <span id="ib-direct-total" class="ib-total-summary"></span>
+              </div>
+            </div>
+
+          </div><!-- /#ib-form -->
+        </div><!-- /#page-inbound -->
+
+        <!-- 출고 관리 -->
+        <div id="page-outbound" class="page">
+
+          <!-- ── 서브: 출고 목록 ── -->
+          <div id="ob-list">
+            <div class="page-toolbar">
+              <span style="font-weight:700;font-size:.95rem">출고 목록</span>
+              <div style="flex:1"></div>
+              <button class="btn btn-primary" id="btn-ob-new">+ 출고 등록</button>
+            </div>
+            <div class="ib-filter-bar">
+              <div class="ib-date-range">
+                <input id="ob-date-start" type="text" class="ib-date-inp" placeholder="시작일" autocomplete="off" />
+                <span class="ib-range-sep">~</span>
+                <input id="ob-date-end" type="text" class="ib-date-inp" placeholder="종료일" autocomplete="off" />
+                <button class="ib-quick-btn" data-ob-range="today">오늘</button>
+                <button class="ib-quick-btn" data-ob-range="week">이번주</button>
+                <button class="ib-quick-btn" data-ob-range="month">이번달</button>
+                <button class="ib-quick-btn ib-quick-clear" data-ob-range="clear">초기화</button>
+              </div>
+              <input id="ob-search" type="text" class="search-input ib-keyword-inp"
+                placeholder="거래처, 모델명, 브랜드, 구분..." />
+            </div>
+            <div id="ob-cards"><div class="empty">로딩 중...</div></div>
+          </div>
+
+          <!-- ── 서브: 출고 등록/수정 폼 ── -->
+          <div id="ob-form" class="hidden">
+            <div class="page-toolbar">
+              <button class="btn btn-ghost" id="btn-ob-back-form">← 목록으로</button>
+              <div style="flex:1"></div>
+              <h3 id="ob-form-title" style="font-size:.95rem;font-weight:700;margin:0">출고 등록</h3>
+              <button class="btn btn-primary" id="btn-ob-save" type="button">저장</button>
+            </div>
+
+            <div class="ib-header-card">
+              <!-- 1행: 출고일 / 거래처 / 세금 -->
+              <div class="form-row-3">
+                <div class="field">
+                  <label>출고일 <span class="req">*</span></label>
+                  <input id="ob-date" type="text" placeholder="날짜 선택" autocomplete="off" />
+                </div>
+                <div class="field" style="position:relative">
+                  <label>거래처</label>
+                  <div style="display:flex;gap:.4rem;align-items:center">
+                    <input id="ob-vendor-input" type="text" placeholder="거래처명 검색..." autocomplete="off" style="flex:1" />
+                    <button type="button" id="btn-ob-new-vendor" class="btn btn-sm btn-ghost hidden"
+                      onclick="obShowNewVendorModal()">+ 신규등록</button>
+                  </div>
+                  <input type="hidden" id="ob-vendor-id" />
+                  <div id="ob-vendor-dropdown" class="ob-vendor-dropdown hidden"></div>
+                </div>
+                <div class="field">
+                  <label>부가세</label>
+                  <div class="ob-tax-toggle">
+                    <button type="button" class="ob-tax-btn active" data-tax="none" id="ob-tax-none">없음</button>
+                    <button type="button" class="ob-tax-btn" data-tax="10" id="ob-tax-10">10%</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 비고 -->
+              <div class="field" style="margin-top:.5rem">
+                <label>비고</label>
+                <input id="ob-notes" type="text" placeholder="메모 (선택)" />
+              </div>
+            </div>
+
+            <!-- 입력 탭 -->
+            <div class="tabs ib-form-tabs" style="margin-top:.75rem">
+              <button class="tab active" data-ob-form-tab="excel">엑셀 업로드</button>
+              <button class="tab" data-ob-form-tab="direct">직접 입력</button>
+            </div>
+
+            <!-- 엑셀 업로드 탭 -->
+            <div id="ob-tab-excel" class="ib-tab-content">
+              <div class="ib-excel-bar">
+                <label class="btn btn-ghost" for="ob-excel-file" style="cursor:pointer">📂 파일 선택</label>
+                <input type="file" id="ob-excel-file" accept=".xlsx,.xls,.csv" style="display:none" />
+                <div class="ib-template-wrap">
+                  <button class="btn btn-ghost" id="btn-ob-template" type="button">⬇ 양식 다운로드</button>
+                  <div class="ib-template-note">
+                    ※ 다운로드 후 <b>2행부터</b> 데이터를 입력해주세요.<br>
+                    1행(헤더)은 수정하지 마세요.
+                  </div>
+                </div>
+                <span id="ob-excel-filename" style="color:var(--gray-600);font-size:.82rem;margin-left:.3rem"></span>
+              </div>
+
+              <div class="ib-excel-guide">
+                <table class="ib-excel-visual">
+                  <thead>
+                    <tr>
+                      <th class="ev-rn"></th>
+                      <th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th><th>H</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="ev-header">
+                      <td class="ev-rn">1</td>
+                      <td>구분</td><td>브랜드</td><td>모델명</td><td>수량</td><td>판매가</td><td>상태</td><td>스펙</td><td>비고</td>
+                      <td class="ev-badge ev-badge-lock">🔒 수정금지</td>
+                    </tr>
+                    <tr class="ev-data-first">
+                      <td class="ev-rn ev-arrow">2 ➜</td>
+                      <td>RAM</td><td>삼성</td><td>DDR4 16G</td><td>5</td><td>20,000</td><td>정상</td><td></td><td></td>
+                      <td class="ev-badge ev-badge-start">✏️ 여기부터 입력</td>
+                    </tr>
+                    <tr class="ev-data">
+                      <td class="ev-rn">3</td>
+                      <td>노트북</td><td>LG</td><td>그램</td><td>1</td><td>600,000</td><td>불량</td><td>i5 16G</td><td></td>
+                      <td></td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div class="ib-excel-tips">
+                  <span>💡 <b>구분/브랜드/모델명</b>은 재고에 등록된 것과 정확히 일치해야 함</span>
+                  <span>💡 스펙 없으면 빈칸</span>
+                  <span>💡 상태: 정상 또는 불량 (빈칸이면 정상 자동처리)</span>
+                  <span>💡 수량과 판매가는 숫자만 입력</span>
+                </div>
+              </div>
+
+              <div id="ob-excel-preview" class="hidden">
+                <div class="ib-tbl-scroll-top" id="ob-excel-tbl-scroll-top"><div class="ib-tbl-scroll-inner"></div></div>
+                <div class="ib-form-table-wrap" id="ob-excel-table-wrap">
+                  <table class="tbl" style="min-width:1050px">
+                    <colgroup>
+                      <col style="width:40px">
+                      <col style="width:80px">
+                      <col style="width:100px">
+                      <col style="width:150px">
+                      <col style="width:120px">
+                      <col style="width:70px">
+                      <col style="width:70px">
+                      <col style="width:100px">
+                      <col style="width:90px">
+                      <col style="width:80px">
+                      <col style="width:170px">
+                      <col style="width:120px">
+                    </colgroup>
+                    <thead>
+                      <tr>
+                        <th>#</th><th>구분</th><th>브랜드</th><th>모델명</th><th>스펙</th>
+                        <th>상태</th><th>수량</th><th>판매가</th><th>합계</th><th>현재재고</th><th>결과</th><th>비고</th>
+                      </tr>
+                    </thead>
+                    <tbody id="ob-excel-tbody"></tbody>
+                  </table>
+                </div>
+                <div class="ib-form-footer">
+                  <span id="ob-excel-summary" class="ib-total-summary"></span>
+                  <div style="display:flex;gap:.5rem">
+                    <button class="btn btn-ghost" id="btn-ob-excel-add-new" type="button" style="display:none">추가 등록</button>
+                    <button class="btn btn-ghost" id="btn-ob-excel-save-valid" type="button">정상 행만 등록</button>
+                    <button class="btn btn-primary" id="btn-ob-excel-save-all" type="button">전체 등록</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 직접 입력 탭 -->
+            <div id="ob-tab-direct" class="ib-tab-content hidden">
+              <div class="ib-header-card" style="padding:0;overflow:visible">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:.65rem 1rem .5rem">
+                  <span style="font-weight:700;font-size:.88rem">출고 항목</span>
+                  <button type="button" class="btn btn-sm btn-ghost" id="btn-ob-add-row">+ 행 추가</button>
+                </div>
+                <div style="overflow-x:auto">
+                  <table class="tbl ob-items-tbl">
+                    <thead>
+                      <tr>
+                        <th style="width:2rem">#</th>
+                        <th style="min-width:80px">구분</th>
+                        <th style="min-width:90px">브랜드</th>
+                        <th style="min-width:130px">모델명</th>
+                        <th style="min-width:120px">스펙</th>
+                        <th style="width:60px">상태</th>
+                        <th style="width:70px">수량</th>
+                        <th style="min-width:110px">판매가</th>
+                        <th style="min-width:100px">소계</th>
+                        <th style="width:80px">세금</th>
+                        <th style="width:110px">합계</th>
+                        <th style="min-width:90px">비고</th>
+                        <th style="width:2rem"></th>
+                      </tr>
+                    </thead>
+                    <tbody id="ob-items-tbody"></tbody>
+                    <tfoot>
+                      <tr>
+                        <td colspan="9" style="text-align:right;font-weight:700;padding:.5rem 1rem">합계</td>
+                        <td id="ob-foot-tax" style="text-align:right;padding:.5rem .5rem;font-weight:600">0원</td>
+                        <td id="ob-foot-total" style="text-align:right;padding:.5rem .5rem;font-weight:700">0원</td>
+                        <td colspan="2"></td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div><!-- /#ob-form -->
+
+          <!-- ── 서브: 출고 상세 ── -->
+          <div id="ob-detail" class="hidden" style="display:flex;flex-direction:column;height:100%">
+            <div class="page-toolbar">
+              <button class="btn btn-ghost" id="btn-ob-back-detail">← 목록으로</button>
+              <div style="flex:1"></div>
+              <button class="btn btn-ghost" id="btn-ob-statement">거래명세서</button>
+              <button class="btn btn-warning" id="btn-ob-unpaid">미입금</button>
+              <button class="btn btn-primary" id="btn-ob-edit">수정</button>
+              <button class="btn btn-danger"  id="btn-ob-delete">삭제</button>
+            </div>
+            <div id="ob-detail-content" style="flex:1;overflow-y:auto;padding-bottom:80px"></div>
+            <div id="ob-sticky-footer" class="ob-sticky-footer hidden">
+              <div class="ob-sf-item"><span class="ob-sf-label">공급가액</span><span class="ob-sf-val" id="ob-sf-supply">-</span></div>
+              <div class="ob-sf-sep">+</div>
+              <div class="ob-sf-item"><span class="ob-sf-label">세액</span><span class="ob-sf-val" id="ob-sf-tax">-</span></div>
+              <div class="ob-sf-sep">=</div>
+              <div class="ob-sf-item ob-sf-total"><span class="ob-sf-label">합계금액</span><span class="ob-sf-val" id="ob-sf-grand">-</span></div>
+            </div>
+          </div>
+
+        </div><!-- /#page-outbound -->
+
+        <!-- 반품 (placeholder) -->
+        <!-- 반품/교환 관리 -->
+        <div id="page-returns" class="page">
+
+          <!-- ── 서브: 목록 ── -->
+          <div id="rt-list">
+            <div class="page-toolbar">
+              <span id="rt-list-title" style="font-weight:700;font-size:.95rem"></span>
+              <div style="flex:1"></div>
+              <button class="btn btn-primary" id="btn-rt-new-return">+ 반품 등록</button>
+              <button class="btn btn-outline" id="btn-rt-new-exchange" style="margin-left:.4rem;display:none">+ 교환 등록</button>
+            </div>
+            <div class="ib-filter-bar">
+              <div class="ib-date-range">
+                <input id="rt-date-start" type="text" class="ib-date-inp" placeholder="시작일" autocomplete="off" />
+                <span class="ib-range-sep">~</span>
+                <input id="rt-date-end" type="text" class="ib-date-inp" placeholder="종료일" autocomplete="off" />
+                <button class="ib-quick-btn" data-rtrange="today">오늘</button>
+                <button class="ib-quick-btn" data-rtrange="week">이번주</button>
+                <button class="ib-quick-btn" data-rtrange="month">이번달</button>
+                <button class="ib-quick-btn ib-quick-clear" data-rtrange="clear">초기화</button>
+              </div>
+              <input id="rt-search" type="text" class="search-input ib-keyword-inp"
+                placeholder="거래처, 모델명, 사유 검색..." />
+            </div>
+            <div class="ib-status-tabs" id="rt-filter-tabs">
+              <button class="ib-stab active" data-rttab="all">전체(<span id="rt-count-all">0</span>)</button>
+              <button class="ib-stab" data-rttab="return">반품(<span id="rt-count-return">0</span>)</button>
+              <button class="ib-stab" data-rttab="exchange">교환(<span id="rt-count-exchange">0</span>)</button>
+              <button class="ib-stab" data-rttab="pending">접수대기(<span id="rt-count-pending">0</span>)</button>
+              <button class="ib-stab" data-rttab="testing">테스트중(<span id="rt-count-testing">0</span>)</button>
+              <button class="ib-stab" data-rttab="normal">정상확정(<span id="rt-count-normal">0</span>)</button>
+              <button class="ib-stab" data-rttab="defective">불량확정(<span id="rt-count-defective">0</span>)</button>
+              <button class="ib-stab" data-rttab="exchange_pending">교환출고대기(<span id="rt-count-exchange_pending">0</span>)</button>
+              <button class="ib-stab" data-rttab="exchange_done">교환완료(<span id="rt-count-exchange_done">0</span>)</button>
+            </div>
+            <div id="rt-cards"><div class="empty">로딩 중...</div></div>
+          </div>
+
+          <!-- ── 서브: 상세 ── -->
+          <div id="rt-detail" class="hidden">
+            <div class="page-toolbar">
+              <button class="btn btn-ghost" id="btn-rt-back-detail">← 목록으로</button>
+              <div style="flex:1"></div>
+              <div id="rt-status-actions" style="display:flex;gap:.4rem"></div>
+              <button class="btn btn-ghost" id="btn-rt-edit" style="margin-left:.4rem">수정</button>
+              <button class="btn btn-danger" id="btn-rt-delete">삭제</button>
+            </div>
+            <div id="rt-detail-content"></div>
+          </div>
+
+          <!-- ── 서브: 등록/수정 폼 ── -->
+          <div id="rt-form" class="hidden">
+            <div class="page-toolbar">
+              <button class="btn btn-ghost" id="btn-rt-back-form">← 목록으로</button>
+              <div style="flex:1"></div>
+              <h3 id="rt-form-title" style="font-size:.95rem;font-weight:700">반품 등록</h3>
+              <button class="btn btn-primary" id="btn-rt-save" type="button">저장</button>
+            </div>
+
+            <!-- 헤더 입력 -->
+            <div class="ib-header-card">
+              <input type="hidden" id="rt-form-type" value="return" />
+              <input type="hidden" id="rt-form-id" value="" />
+              <div class="form-row-3">
+                <div class="field">
+                  <label>접수일 <span class="req">*</span></label>
+                  <input id="rt-received-at" type="text" placeholder="날짜 선택" autocomplete="off" />
+                </div>
+                <div class="field">
+                  <label>유형</label>
+                  <input id="rt-type-display" type="text" readonly
+                    style="background:var(--gray-100);cursor:default;font-weight:600" />
+                </div>
+                <div class="field">
+                  <label>사유 <span class="req">*</span></label>
+                  <select id="rt-reason">
+                    <option value="change_of_mind">고객변심</option>
+                    <option value="wrong_delivery">오배송</option>
+                    <option value="defect_suspected">불량의심</option>
+                    <option value="other">기타</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row-2">
+                <div class="field">
+                  <label>거래처</label>
+                  <div style="position:relative">
+                    <input id="rt-vendor-input" type="text" placeholder="거래처명 검색..."
+                      autocomplete="off" oninput="rtFilterVendors(this.value)"
+                      onblur="setTimeout(()=>document.getElementById('rt-vendor-dropdown')?.classList.add('hidden'),200)" />
+                    <input type="hidden" id="rt-vendor-id" />
+                    <div id="rt-vendor-dropdown" class="ob-vendor-dropdown hidden"></div>
+                  </div>
+                </div>
+                <div class="field">
+                  <label>비고</label>
+                  <input id="rt-notes" type="text" placeholder="비고" />
+                </div>
+              </div>
+              <!-- 출고건 연동 -->
+              <div class="field">
+                <label>출고건 연동
+                  <span class="hint">선택사항 — 거래처 선택 시 해당 거래처 출고 목록이 표시됩니다</span>
+                </label>
+                <div id="rt-outbound-list" class="rt-outbound-list-box hidden"></div>
+                <div id="rt-linked-display" class="rt-linked-box hidden"></div>
+              </div>
+            </div>
+
+            <!-- 반품 품목 -->
+            <div class="ib-header-card" style="margin-top:.75rem">
+              <div class="rt-section-title" id="rt-return-items-label">📦 반품 품목</div>
+              <div id="rt-direct-row-ctrl" style="display:flex;gap:.5rem;align-items:center;margin-bottom:.5rem">
+                <span style="font-size:.85rem;color:var(--gray-600)">행 수:</span>
+                <input id="rt-row-count" type="number" min="1" max="50" value="1"
+                  style="width:4.5rem" />
+                <button class="btn btn-sm btn-ghost" id="btn-rt-add-rows">확인</button>
+              </div>
+              <div class="table-wrap">
+                <table class="tbl rt-items-tbl">
+                  <thead>
+                    <tr>
+                      <th style="width:2rem" id="rt-ri-chk-th"></th>
+                      <th>구분</th><th>브랜드</th><th>모델명</th><th>스펙</th>
+                      <th style="width:6rem">수량</th><th style="width:8rem">판매가</th><th>비고</th>
+                      <th style="width:2.5rem"></th>
+                    </tr>
+                  </thead>
+                  <tbody id="rt-return-items-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- 교환 출고 품목 (교환 전용) -->
+            <div class="ib-header-card hidden" style="margin-top:.75rem" id="rt-exchange-section">
+              <div class="rt-section-title">🔄 교환 출고 품목 <span style="font-size:.8rem;color:var(--gray-500);font-weight:400">(새로 나가는 상품)</span></div>
+              <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.5rem">
+                <span style="font-size:.85rem;color:var(--gray-600)">행 수:</span>
+                <input id="rt-ex-row-count" type="number" min="1" max="50" value="1"
+                  style="width:4.5rem" />
+                <button class="btn btn-sm btn-ghost" id="btn-rt-add-ex-rows">확인</button>
+              </div>
+              <div class="table-wrap" style="overflow-x:auto">
+                <table class="tbl rt-items-tbl" style="min-width:860px">
+                  <thead>
+                    <tr>
+                      <th>구분</th><th>브랜드</th>
+                      <th>모델명</th><th>스펙</th>
+                      <th style="width:6rem">수량</th>
+                      <th style="width:7rem">판매가</th>
+                      <th style="width:7rem">합계</th>
+                      <th>비고</th>
+                      <th style="width:2.5rem"></th>
+                    </tr>
+                  </thead>
+                  <tbody id="rt-exchange-items-tbody"></tbody>
+                </table>
+              </div>
+              <div style="text-align:right;padding:.5rem .25rem;font-size:.88rem;font-weight:600;color:var(--gray-700)">
+                교환 합계: <span id="rt-ex-total">0원</span>
+              </div>
+            </div>
+
+          </div><!-- /#rt-form -->
+
+        </div><!-- /#page-returns -->
+
+        <!-- 매입거래처 관리 -->
+        <div id="page-purchase-vendors" class="page">
+          <div class="page-toolbar">
+            <div class="search-wrap">
+              <input id="pvendor-search" type="text"
+                placeholder="이름, 회사명, 전화번호 검색..."
+                class="search-input" />
+            </div>
+            <button class="btn btn-primary" id="btn-pvendor-add">+ 거래처 등록</button>
+          </div>
+          <!-- 유형 탭 -->
+          <div class="pvendor-type-tabs">
+            <button class="pvendor-type-btn active" data-pvtype="all">전체(<span id="pvendor-type-count-all">0</span>)</button>
+            <button class="pvendor-type-btn" data-pvtype="individual">일반소비자(<span id="pvendor-type-count-individual">0</span>)</button>
+            <button class="pvendor-type-btn" data-pvtype="company">기업(<span id="pvendor-type-count-company">0</span>)</button>
+          </div>
+          <div class="table-wrap">
+            <table class="tbl">
+              <thead id="pvendor-thead">
+                <tr>
+                  <th>유형</th><th>이름/회사명</th><th>전화번호</th>
+                  <th>담당자</th><th>특이사항</th><th>사업자등록증</th>
+                  <th>등록자</th><th>등록일시</th><th>수정자</th><th>수정일시</th>
+                </tr>
+              </thead>
+              <tbody id="pvendor-tbody">
+                <tr><td colspan="10" class="empty">로딩 중...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 출고거래처 관리 -->
+        <div id="page-sales-vendors" class="page">
+          <div class="page-toolbar">
+            <div class="search-wrap">
+              <input id="svendor-search" type="text"
+                placeholder="상호명, 사업자번호, 전화번호 검색..."
+                class="search-input" />
+            </div>
+            <button class="btn btn-primary" id="btn-svendor-add">+ 거래처 등록</button>
+          </div>
+          <!-- 중요 필터 -->
+          <div class="svendor-filter-bar">
+            <button class="svendor-filter-btn active" data-sfilter="all">전체(<span id="svendor-count-all">0</span>)</button>
+            <button class="svendor-filter-btn" data-sfilter="important">★ 중요(<span id="svendor-count-important">0</span>)</button>
+          </div>
+          <div class="table-wrap">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>상호명</th><th>이름</th><th>사업자번호</th><th>전화번호</th>
+                  <th>주소</th><th>특이사항</th><th>사업자등록증</th>
+                  <th>은행명</th><th>계좌번호</th><th>예금주</th>
+                  <th>등록자</th><th>등록일시</th><th>수정자</th><th>수정일시</th>
+                </tr>
+              </thead>
+              <tbody id="svendor-tbody">
+                <tr><td colspan="14" class="empty">로딩 중...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 매출 (placeholder) -->
+        <div id="page-sales" class="page">
+
+          <!-- 툴바 -->
+          <div class="page-toolbar">
+            <span style="font-weight:700;font-size:.95rem">판매현황</span>
+            <div class="sl-date-wrap">
+              <input type="date" id="sl-from" class="form-control sl-date-inp" />
+              <span class="sl-date-sep">~</span>
+              <input type="date" id="sl-to"   class="form-control sl-date-inp" />
+              <button class="btn btn-ghost btn-xs" id="btn-sl-today">오늘</button>
+              <button class="btn btn-ghost btn-xs" id="btn-sl-week">이번주</button>
+              <button class="btn btn-ghost btn-xs" id="btn-sl-month">이번달</button>
+            </div>
+            <div style="flex:1"></div>
+            <button class="btn btn-ghost" id="btn-sl-excel">📥 엑셀</button>
+          </div>
+
+          <!-- 검색 바 -->
+          <div class="sl-search-bar">
+            <input id="sl-search-cat"    class="form-control sl-search-inp" placeholder="구분"   style="width:88px" />
+            <input id="sl-search-brand"  class="form-control sl-search-inp" placeholder="브랜드" style="width:100px" />
+            <input id="sl-search-model"  class="form-control sl-search-inp" placeholder="모델명" style="width:160px" />
+            <input id="sl-search-vendor" class="form-control sl-search-inp" placeholder="거래처" style="width:110px" />
+            <button class="btn btn-ghost btn-xs" id="btn-sl-search-clear">✕</button>
+          </div>
+
+          <!-- 유형 탭 -->
+          <div class="tab-bar sl-tab-bar">
+            <button class="tab-btn sl-tab-btn active" data-sltab="all">전체 <span class="tab-count" id="sl-cnt-all">0</span></button>
+            <button class="tab-btn sl-tab-btn" data-sltab="normal">일반판매 <span class="tab-count" id="sl-cnt-normal">0</span></button>
+            <button class="tab-btn sl-tab-btn" data-sltab="unpaid">미입금 <span class="tab-count" id="sl-cnt-unpaid">0</span></button>
+            <button class="tab-btn sl-tab-btn" data-sltab="return_deducted">반품차감 <span class="tab-count" id="sl-cnt-return">0</span></button>
+            <button class="tab-btn sl-tab-btn" data-sltab="exchange">교환 <span class="tab-count" id="sl-cnt-exchange">0</span></button>
+          </div>
+
+          <!-- 테이블 -->
+          <div class="dual-scroll-top" id="sl-scroll-top"><div class="dual-scroll-inner"></div></div>
+          <div class="table-wrap sl-table-wrap" id="sl-table-wrap">
+            <table class="sl-table">
+              <thead>
+                <tr>
+                  <th style="min-width:88px">출고날짜</th>
+                  <th style="min-width:60px">구분</th>
+                  <th style="min-width:80px">브랜드</th>
+                  <th style="min-width:120px">모델명</th>
+                  <th style="min-width:80px">스펙</th>
+                  <th class="sl-num" style="min-width:50px">수량</th>
+                  <th class="sl-num" style="min-width:90px">판매가</th>
+                  <th class="sl-num" style="min-width:100px">판매가합계</th>
+                  <th class="sl-num price-col" style="min-width:100px">평균매입가</th>
+                  <th class="sl-num price-col" style="min-width:90px">순수익/개</th>
+                  <th class="sl-num price-col" style="min-width:100px">순수익합계</th>
+                  <th style="min-width:90px">거래처</th>
+                  <th style="min-width:80px">유형</th>
+                </tr>
+              </thead>
+              <tbody id="sl-tbody">
+                <tr><td colspan="13" class="empty">데이터를 불러오는 중...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 하단 요약 -->
+          <div class="sl-summary-bar">
+            <div class="sl-sum-item">
+              <span class="sl-sum-label">총 건수</span>
+              <span class="sl-sum-val" id="sl-sum-items">—</span>
+            </div>
+            <div class="sl-sum-item">
+              <span class="sl-sum-label">총 수량</span>
+              <span class="sl-sum-val" id="sl-sum-qty">—</span>
+            </div>
+            <div class="sl-sum-divider"></div>
+            <div class="sl-sum-item">
+              <span class="sl-sum-label">판매가합계</span>
+              <span class="sl-sum-val sl-sum-sales" id="sl-sum-sales">—</span>
+            </div>
+            <div class="sl-sum-item sl-sum-profit-item price-col">
+              <span class="sl-sum-label">순수익합계</span>
+              <span class="sl-sum-val" id="sl-sum-profit">—</span>
+            </div>
+            <div class="sl-sum-divider"></div>
+            <div class="sl-sum-item">
+              <span class="sl-sum-label">일반판매</span>
+              <span class="sl-sum-val sl-sum-gray" id="sl-sum-normal-cnt">—</span>
+            </div>
+            <div class="sl-sum-item">
+              <span class="sl-sum-label">반품차감</span>
+              <span class="sl-sum-val sl-sum-gray" id="sl-sum-return-cnt">—</span>
+            </div>
+            <div class="sl-sum-item">
+              <span class="sl-sum-label">교환</span>
+              <span class="sl-sum-val sl-sum-gray" id="sl-sum-exch-cnt">—</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 사용자 관리 (관리자) -->
+        <div id="page-users" class="page">
+          <div class="tabs">
+            <button class="tab active" data-tab="pending">
+              승인 대기 <span class="badge" id="badge-pending">0</span>
+            </button>
+            <button class="tab" data-tab="all">전체 사용자</button>
+          </div>
+
+          <!-- 승인 대기 탭 -->
+          <div id="tab-pending" class="tab-content active">
+            <div class="table-wrap">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th>이름</th>
+                    <th>아이디</th>
+                    <th>가입일</th>
+                    <th>권한부여</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-pending">
+                  <tr><td colspan="4" class="empty">대기 중인 회원이 없습니다.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 전체 사용자 탭 -->
+          <div id="tab-all" class="tab-content">
+            <div class="table-wrap">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th>이름</th>
+                    <th>아이디</th>
+                    <th>권한</th>
+                    <th>가입일</th>
+                    <th>권한 변경</th>
+                    <th>관리</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-all">
+                  <tr><td colspan="6" class="empty">사용자가 없습니다.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- 내 정보 -->
+        <div id="page-profile" class="page">
+          <div class="ib-header-card" style="max-width:480px">
+            <div style="font-weight:700;font-size:.95rem;margin-bottom:1rem">내 정보</div>
+            <dl class="detail-dl">
+              <div class="detail-row"><dt>이름</dt><dd id="profile-name">-</dd></div>
+              <div class="detail-row"><dt>아이디</dt><dd id="profile-username">-</dd></div>
+              <div class="detail-row"><dt>권한</dt><dd id="profile-role">-</dd></div>
+              <div class="detail-row"><dt>가입일</dt><dd id="profile-created">-</dd></div>
+            </dl>
+
+            <div style="margin-top:1.5rem;border-top:1px solid var(--gray-100);padding-top:1.25rem">
+              <div style="font-weight:700;font-size:.9rem;margin-bottom:.75rem">비밀번호 변경</div>
+              <div class="field" style="margin-bottom:.5rem">
+                <label class="label">현재 비밀번호</label>
+                <input type="password" id="profile-cur-pw" class="inp" placeholder="현재 비밀번호">
+              </div>
+              <div class="field" style="margin-bottom:.5rem">
+                <label class="label">새 비밀번호</label>
+                <input type="password" id="profile-new-pw" class="inp" placeholder="새 비밀번호 (4자 이상)">
+              </div>
+              <div class="field" style="margin-bottom:.75rem">
+                <label class="label">비밀번호 확인</label>
+                <input type="password" id="profile-confirm-pw" class="inp" placeholder="새 비밀번호 확인">
+              </div>
+              <button class="btn btn-primary" onclick="saveProfilePw()">변경하기</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 회사 정보 -->
+        <div id="page-company" class="page">
+          <div class="page-toolbar">
+            <span style="font-weight:700;font-size:.95rem">회사 정보</span>
+            <div style="flex:1"></div>
+            <button class="btn btn-ghost hidden" id="btn-company-cancel">취소</button>
+            <button class="btn btn-primary hidden" id="btn-company-save">저장</button>
+            <button class="btn btn-primary" id="btn-company-edit">수정</button>
+          </div>
+
+          <!-- 미등록 안내 -->
+          <div id="company-empty" class="hidden" style="text-align:center;padding:3rem;color:var(--gray-500)">
+            회사 정보를 등록해주세요.<br>
+            <button class="btn btn-primary" style="margin-top:1rem" id="btn-company-register">+ 회사 정보 등록</button>
+          </div>
+
+          <!-- 보기 모드 -->
+          <div id="company-view" class="hidden">
+            <div class="ib-header-card">
+              <div class="v-section-divider">기본 정보</div>
+              <div class="form-row-2">
+                <div class="vdd-field"><div class="vdd-label">회사명</div><div class="vdd-value" id="cv-company-name">-</div></div>
+                <div class="vdd-field"><div class="vdd-label">대표자명</div><div class="vdd-value" id="cv-representative">-</div></div>
+              </div>
+              <div class="form-row-2">
+                <div class="vdd-field"><div class="vdd-label">사업자등록번호</div><div class="vdd-value" id="cv-biz">-</div></div>
+                <div class="vdd-field"><div class="vdd-label">전화번호</div><div class="vdd-value" id="cv-phone">-</div></div>
+              </div>
+              <div class="form-row-2">
+                <div class="vdd-field"><div class="vdd-label">팩스</div><div class="vdd-value" id="cv-fax">-</div></div>
+                <div class="vdd-field"><div class="vdd-label">이메일</div><div class="vdd-value" id="cv-email">-</div></div>
+              </div>
+              <div class="vdd-field"><div class="vdd-label">주소</div><div class="vdd-value" id="cv-address">-</div></div>
+              <div class="vdd-field">
+                <div class="vdd-label">사업자등록증</div>
+                <div class="vdd-value" id="cv-license">
+                  <span id="cv-license-none" style="color:var(--gray-400)">미등록</span>
+                  <a id="cv-license-link" href="#" target="_blank" class="hidden">파일 보기</a>
+                </div>
+              </div>
+            </div>
+            <div class="ib-header-card" style="margin-top:.75rem">
+              <div class="v-section-divider">계좌 정보</div>
+              <div class="form-row-3">
+                <div class="vdd-field"><div class="vdd-label">은행명</div><div class="vdd-value" id="cv-bank-name">-</div></div>
+                <div class="vdd-field"><div class="vdd-label">계좌번호</div><div class="vdd-value" id="cv-account-number">-</div></div>
+                <div class="vdd-field"><div class="vdd-label">예금주</div><div class="vdd-value" id="cv-account-holder">-</div></div>
+              </div>
+            </div>
+            <div class="ib-header-card" style="margin-top:.75rem">
+              <div class="vdd-field"><div class="vdd-label">비고</div><div class="vdd-value vdd-value-multi" id="cv-notes">-</div></div>
+              <div class="vdd-meta" style="margin-top:.75rem">
+                <span><span class="meta-label">최종수정</span><span id="cv-updated-at">-</span></span>
+                <span><span class="meta-label">수정자</span><span id="cv-updated-by">-</span></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 수정 폼 -->
+          <form id="company-form" class="hidden" autocomplete="off">
+            <div class="ib-header-card">
+              <div class="v-section-divider">기본 정보</div>
+              <div class="form-row-2">
+                <div class="field"><label>회사명</label><input id="cf-company-name" type="text" placeholder="회사명" /></div>
+                <div class="field"><label>대표자명</label><input id="cf-representative" type="text" placeholder="대표자명" /></div>
+              </div>
+              <div class="form-row-2">
+                <div class="field"><label>사업자등록번호 <span class="hint">숫자만</span></label><input id="cf-biz" type="text" placeholder="0000000000" maxlength="12" /></div>
+                <div class="field"><label>전화번호 <span class="hint">숫자만</span></label><input id="cf-phone" type="text" placeholder="000-0000-0000" maxlength="13" /></div>
+              </div>
+              <div class="form-row-2">
+                <div class="field"><label>팩스 <span class="hint">선택</span></label><input id="cf-fax" type="text" placeholder="000-0000-0000" maxlength="13" /></div>
+                <div class="field"><label>이메일 <span class="hint">선택</span></label><input id="cf-email" type="email" placeholder="example@email.com" /></div>
+              </div>
+              <div class="field"><label>주소</label><input id="cf-address" type="text" placeholder="주소" /></div>
+              <div class="field">
+                <label>사업자등록증 <span class="hint">jpg/png/pdf, 최대 10MB</span></label>
+                <input id="cf-license-file" type="file" accept=".jpg,.jpeg,.png,.pdf" />
+                <span id="cf-license-current" style="font-size:.8rem;color:var(--gray-500);margin-top:.25rem;display:block"></span>
+              </div>
+            </div>
+            <div class="ib-header-card" style="margin-top:.75rem">
+              <div class="v-section-divider">계좌 정보</div>
+              <div class="form-row-3">
+                <div class="field">
+                  <label>은행명</label>
+                  <select id="cf-bank-name">
+                    <option value="">선택 안 함</option>
+                    <option value="국민">국민</option>
+                    <option value="신한">신한</option>
+                    <option value="우리">우리</option>
+                    <option value="하나">하나</option>
+                    <option value="기업">기업</option>
+                    <option value="농협">농협</option>
+                    <option value="카카오뱅크">카카오뱅크</option>
+                    <option value="토스뱅크">토스뱅크</option>
+                    <option value="SC제일">SC제일</option>
+                    <option value="씨티">씨티</option>
+                    <option value="우체국">우체국</option>
+                    <option value="새마을금고">새마을금고</option>
+                    <option value="신협">신협</option>
+                    <option value="기타">기타</option>
+                  </select>
+                </div>
+                <div class="field"><label>계좌번호 <span class="hint">숫자만</span></label><input id="cf-account-number" type="text" placeholder="계좌번호" maxlength="20" autocomplete="off" /></div>
+                <div class="field"><label>예금주</label><input id="cf-account-holder" type="text" placeholder="예금주" /></div>
+              </div>
+            </div>
+            <div class="ib-header-card" style="margin-top:.75rem">
+              <div class="field"><label>비고</label><textarea id="cf-notes" rows="3" placeholder="비고"></textarea></div>
+            </div>
+          </form>
+        </div>
+
+        <!-- 휴지통 -->
+        <div id="page-trash" class="page">
+          <div class="page-toolbar">
+            <span style="font-weight:700;font-size:.95rem">🗑️ 휴지통</span>
+            <div style="flex:1"></div>
+            <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+              <input id="trash-date-from" type="date" class="ib-date-inp" style="width:130px" />
+              <span style="color:var(--gray-400)">~</span>
+              <input id="trash-date-to" type="date" class="ib-date-inp" style="width:130px" />
+              <input id="trash-search" type="text" class="search-input" placeholder="거래처, 모델명, 삭제자..." style="width:180px" />
+              <button class="btn btn-ghost btn-sm" id="btn-trash-reset">초기화</button>
+            </div>
+          </div>
+
+          <!-- 유형 필터 탭 -->
+          <div class="trash-tab-bar">
+            <button class="trash-tab-btn active" data-trtype="all">전체</button>
+            <button class="trash-tab-btn" data-trtype="inbound">📦 매입</button>
+            <button class="trash-tab-btn" data-trtype="outbound">🚚 출고</button>
+            <button class="trash-tab-btn" data-trtype="return">🔄 반품</button>
+            <button class="trash-tab-btn" data-trtype="exchange">🔄 교환</button>
+            <button class="trash-tab-btn" data-trtype="vendor">🏢 거래처</button>
+            <button class="trash-tab-btn" data-trtype="user">👤 사용자</button>
+          </div>
+
+          <p style="font-size:.82rem;color:var(--gray-500);margin:.25rem 0 .75rem">삭제 후 30일이 지나면 자동으로 영구 삭제됩니다.</p>
+          <div id="trash-count" style="font-size:.82rem;color:var(--gray-500);margin-bottom:.4rem"></div>
+
+          <div class="table-wrap">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th style="width:80px">유형</th>
+                  <th>요약</th>
+                  <th style="width:80px">삭제자</th>
+                  <th style="width:120px">삭제일시</th>
+                  <th style="width:120px">자동삭제 예정</th>
+                  <th style="width:110px">액션</th>
+                </tr>
+              </thead>
+              <tbody id="trash-tbody">
+                <tr><td colspan="6" class="empty">로딩 중...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 감사로그 -->
+        <div id="page-audit-log" class="page">
+          <div class="page-toolbar">
+            <span style="font-weight:700;font-size:.95rem">📋 감사로그</span>
+            <div style="flex:1"></div>
+            <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+              <input id="al-date-start" type="text" class="ib-date-inp" placeholder="시작일" autocomplete="off" style="width:110px" />
+              <span style="color:var(--gray-400)">~</span>
+              <input id="al-date-end" type="text" class="ib-date-inp" placeholder="종료일" autocomplete="off" style="width:110px" />
+              <button class="btn btn-ghost btn-sm" id="btn-al-search">검색</button>
+              <button class="btn btn-ghost btn-sm" id="btn-al-reset">초기화</button>
+              <input id="al-search" type="text" class="search-input" placeholder="수행자, 메뉴, 내용 검색..." style="width:200px" />
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>일시</th><th>수행자</th><th>메뉴</th>
+                  <th>작업</th><th>내용</th><th>상세</th>
+                </tr>
+              </thead>
+              <tbody id="al-tbody">
+                <tr><td colspan="6" class="empty">로딩 중...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div id="al-count" style="font-size:.82rem;color:var(--gray-500);margin-top:.5rem"></div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+</div><!-- #app -->
+
+<!-- 토스트 -->
+<div id="toast-wrap"></div>
+
+<!-- ══ 거래처 상세/수정 모달 ═══════════════════════════════════ -->
+<div id="modal-vendor-detail" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-hd">
+      <h3 id="vdd-title">거래처</h3>
+      <button class="btn-close" id="btn-vdd-close">✕</button>
+    </div>
+
+    <!-- 상세 보기 섹션 -->
+    <div id="vdd-view" class="modal-bd">
+      <!-- 출고거래처 전용: 중요 표시 -->
+      <div id="vdd-star-row" class="hidden v-star-row">
+        <span id="vdd-star-icon" class="v-star-btn" style="cursor:default">☆</span>
+        <span id="vdd-star-label" class="v-star-label">중요 거래처</span>
+      </div>
+
+      <!-- 매입거래처 전용: 유형별 정보 -->
+      <div id="vdd-purchase-section" class="hidden">
+        <div class="vdd-field">
+          <div class="vdd-label">거래처 유형</div>
+          <div class="vdd-value" id="vdd-vendor-type-label">-</div>
+        </div>
+        <!-- 일반소비자 -->
+        <div id="vdd-pind-section" class="hidden">
+          <div class="form-row-2">
+            <div class="vdd-field"><div class="vdd-label">이름</div><div class="vdd-value" id="vdd-ind-name">-</div></div>
+            <div class="vdd-field"><div class="vdd-label">전화번호</div><div class="vdd-value" id="vdd-ind-phone">-</div></div>
+          </div>
+          <div class="form-row-2">
+            <div class="vdd-field"><div class="vdd-label">계좌번호</div><div class="vdd-value" id="vdd-ind-account">-</div></div>
+            <div class="vdd-field"><div class="vdd-label">비고</div><div class="vdd-value" id="vdd-ind-notes">-</div></div>
+          </div>
+        </div>
+        <!-- 기업 -->
+        <div id="vdd-pcomp-section" class="hidden">
+          <div class="form-row-2">
+            <div class="vdd-field"><div class="vdd-label">담당자</div><div class="vdd-value" id="vdd-mgr-name">-</div></div>
+            <div class="vdd-field"><div class="vdd-label">담당자전화번호</div><div class="vdd-value" id="vdd-mgr-phone">-</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vdd-field">
+        <div class="vdd-label">이름</div>
+        <div class="vdd-value" id="vdd-name">-</div>
+      </div>
+      <div class="vdd-field">
+        <div class="vdd-label">상호명</div>
+        <div class="vdd-value" id="vdd-company">-</div>
+      </div>
+      <div class="vdd-field">
+        <div class="vdd-label">사업자번호</div>
+        <div class="vdd-value" id="vdd-biz">-</div>
+      </div>
+      <div class="form-row-2">
+        <div class="vdd-field">
+          <div class="vdd-label">전화번호</div>
+          <div class="vdd-value" id="vdd-phone">-</div>
+        </div>
+        <div class="vdd-field">
+          <div class="vdd-label">사업자등록증</div>
+          <div class="vdd-value" style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+            <span id="vdd-license">-</span>
+            <button type="button" class="btn btn-xs btn-ghost" id="btn-vdd-upload-license" style="display:none">업로드</button>
+            <button type="button" class="btn btn-xs btn-ghost" id="btn-vdd-delete-license" style="display:none;color:#e03131">삭제</button>
+            <input type="file" id="vdd-license-input" accept=".jpg,.jpeg,.png,.pdf" style="display:none" />
+          </div>
+        </div>
+      </div>
+
+      <div class="vdd-field">
+        <div class="vdd-label">사업자등록 주소</div>
+        <div class="vdd-value" id="vdd-reg-addr">-</div>
+      </div>
+
+      <div class="vdd-field">
+        <div class="vdd-label">배송주소</div>
+        <div class="vdd-value" id="vdd-del-addr">-</div>
+      </div>
+
+      <div class="form-row-2">
+        <div class="vdd-field">
+          <div class="vdd-label">특이사항</div>
+          <div class="vdd-value vdd-value-multi" id="vdd-notes">-</div>
+        </div>
+        <div class="vdd-field">
+          <div class="vdd-label">비고</div>
+          <div class="vdd-value vdd-value-multi" id="vdd-remarks">-</div>
+        </div>
+      </div>
+
+      <!-- 출고거래처 전용: 계좌 정보 -->
+      <div id="vdd-bank-section" class="hidden">
+        <div class="v-section-divider">계좌 정보</div>
+        <div class="vdd-field">
+          <div class="vdd-label">은행명</div>
+          <div class="vdd-value" id="vdd-bank-name">-</div>
+        </div>
+        <div class="vdd-field">
+          <div class="vdd-label">계좌번호</div>
+          <div class="vdd-value vdd-acc-row">
+            <span id="vdd-account-number">-</span>
+            <button type="button" class="btn btn-xs btn-ghost" id="btn-vdd-copy-account">복사</button>
+          </div>
+        </div>
+        <div class="vdd-field">
+          <div class="vdd-label">예금주</div>
+          <div class="vdd-value" id="vdd-account-holder">-</div>
+        </div>
+      </div>
+
+      <div class="vdd-meta">
+        <span><span class="meta-label">등록자</span><span id="vdd-created-by">-</span></span>
+        <span><span class="meta-label">등록일시</span><span id="vdd-created-at">-</span></span>
+        <span><span class="meta-label">수정자</span><span id="vdd-updated-by">-</span></span>
+        <span><span class="meta-label">수정일시</span><span id="vdd-updated-at">-</span></span>
+      </div>
+    </div>
+
+    <!-- 수정 폼 섹션 -->
+    <div id="vdd-edit" class="modal-bd hidden">
+      <form id="form-vendor-edit" autocomplete="off">
+        <input type="hidden" id="vde-id" />
+        <input type="hidden" id="vde-vendor-type" value="company" />
+        <!-- 매입거래처 전용: 유형 선택 및 개별 필드 -->
+        <div id="vde-purchase-section" class="hidden">
+          <div class="pv-type-toggle" style="margin-bottom:.75rem">
+            <button type="button" class="pv-type-btn active" data-vtype-edit="company">기업</button>
+            <button type="button" class="pv-type-btn" data-vtype-edit="individual">일반소비자</button>
+          </div>
+          <!-- 일반소비자 편집 -->
+          <div id="vde-ind-section" class="hidden">
+            <div class="form-row-2">
+              <div class="field"><label>이름 <span class="req">*</span></label><input id="vde-ind-name" type="text" placeholder="이름" /></div>
+              <div class="field"><label>전화번호</label><input id="vde-ind-phone" type="text" placeholder="000-0000-0000" maxlength="13" /></div>
+            </div>
+            <div class="form-row-2">
+              <div class="field"><label>계좌번호</label><input id="vde-ind-account" type="text" placeholder="계좌번호" maxlength="20" /></div>
+              <div class="field"><label>비고</label><input id="vde-ind-notes" type="text" placeholder="비고" /></div>
+            </div>
+          </div>
+          <!-- 기업 추가 필드 -->
+          <div id="vde-comp-extra" class="hidden">
+            <div class="form-row-2">
+              <div class="field"><label>담당자</label><input id="vde-mgr-name" type="text" placeholder="담당자 이름" /></div>
+              <div class="field"><label>담당자전화번호</label><input id="vde-mgr-phone" type="text" placeholder="000-0000-0000" maxlength="13" /></div>
+            </div>
+          </div>
+        </div>
+        <input type="hidden" id="vde-is-important" value="0" />
+        <!-- 출고거래처 전용: 중요 표시 버튼 -->
+        <div id="vde-star-row" class="hidden v-star-row">
+          <button type="button" id="btn-vde-star" class="v-star-btn">☆</button>
+          <span class="v-star-label">중요 거래처로 표시</span>
+        </div>
+        <div class="field">
+          <label>이름</label>
+          <input id="vde-name" type="text" placeholder="대표자 이름 (선택)" />
+        </div>
+        <div class="field">
+          <label>상호명 <span class="req">*</span></label>
+          <input id="vde-company" type="text" placeholder="상호명" required />
+        </div>
+        <div class="form-row-2">
+          <div class="field">
+            <label>사업자번호 <span class="hint">숫자만</span></label>
+            <input id="vde-biz" type="text" placeholder="000-00-00000" maxlength="12" />
+          </div>
+          <div class="field">
+            <label>전화번호 <span class="hint">숫자만</span></label>
+            <input id="vde-phone" type="text" placeholder="000-0000-0000" maxlength="13" />
+          </div>
+        </div>
+        <div class="field">
+          <label>사업자등록 주소</label>
+          <input id="vde-reg-addr" type="text" placeholder="사업자등록 주소" />
+        </div>
+        <div class="field">
+          <label class="label-with-check">
+            배송주소
+            <label class="check-inline">
+              <input type="checkbox" id="vde-same-addr" /> 등록주소와 동일
+            </label>
+          </label>
+          <input id="vde-del-addr" type="text" placeholder="배송주소" />
+        </div>
+        <div class="form-row-2">
+          <div class="field">
+            <label>특이사항</label>
+            <textarea id="vde-notes" rows="3" placeholder="특이사항"></textarea>
+          </div>
+          <div class="field">
+            <label>비고</label>
+            <textarea id="vde-remarks" rows="3" placeholder="비고"></textarea>
+          </div>
+        </div>
+        <!-- 출고거래처 전용: 계좌 정보 -->
+        <div id="vde-sales-section" class="hidden">
+          <div class="v-section-divider">계좌 정보</div>
+          <div class="form-row-3">
+            <div class="field">
+              <label>은행명</label>
+              <select id="vde-bank-name">
+                <option value="">선택 안 함</option>
+                <option value="국민">국민</option>
+                <option value="신한">신한</option>
+                <option value="우리">우리</option>
+                <option value="하나">하나</option>
+                <option value="기업">기업</option>
+                <option value="농협">농협</option>
+                <option value="카카오뱅크">카카오뱅크</option>
+                <option value="토스뱅크">토스뱅크</option>
+                <option value="SC제일">SC제일</option>
+                <option value="씨티">씨티</option>
+                <option value="우체국">우체국</option>
+                <option value="새마을금고">새마을금고</option>
+                <option value="신협">신협</option>
+                <option value="기타">기타</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>계좌번호 <span class="hint">숫자만 입력</span></label>
+              <input id="vde-account-number" type="text" placeholder="000-000-000000" maxlength="18" autocomplete="off" />
+            </div>
+            <div class="field">
+              <label>예금주</label>
+              <input id="vde-account-holder" type="text" placeholder="예금주명" />
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- 푸터: 보기 모드 -->
+    <div id="vdd-ft-view" class="modal-ft">
+      <button class="btn btn-ghost" id="btn-vdd-close2">닫기</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-primary" id="btn-vdd-to-edit">수정</button>
+      <button class="btn btn-danger"  id="btn-vdd-delete" style="display:none">삭제</button>
+    </div>
+
+    <!-- 푸터: 삭제 확인 -->
+    <div id="vdd-ft-delete" class="modal-ft delete-confirm-bar hidden">
+      <span class="delete-confirm-text">정말 삭제하시겠습니까?</span>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost"  id="btn-vdd-del-cancel">취소</button>
+      <button class="btn btn-danger" id="btn-vdd-del-confirm">삭제 확인</button>
+    </div>
+
+    <!-- 푸터: 수정 모드 -->
+    <div id="vdd-ft-edit" class="modal-ft hidden">
+      <button class="btn btn-ghost"   id="btn-vdd-edit-cancel">취소</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-primary" id="btn-vdd-save">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 거래처 등록 모달 ══════════════════════════════════════ -->
+<div id="modal-vendor" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-hd">
+      <h3 id="modal-vendor-title">거래처 등록</h3>
+      <button type="button" id="btn-v-star" class="v-star-btn hidden" title="중요 거래처 표시">☆</button>
+      <input type="hidden" id="v-is-important" value="0" />
+      <button class="btn-close" id="btn-modal-vendor-close">✕</button>
+    </div>
+    <div class="modal-bd">
+      <form id="form-vendor" autocomplete="off">
+        <input type="hidden" id="v-id" />
+        <input type="hidden" id="v-vendor-type" value="company" />
+
+        <!-- 매입거래처 전용: 유형 선택 -->
+        <div id="v-purchase-section" class="hidden">
+          <div class="pv-type-toggle" style="margin-bottom:.75rem">
+            <button type="button" class="pv-type-btn active" data-vtype="company">기업</button>
+            <button type="button" class="pv-type-btn" data-vtype="individual">일반소비자</button>
+          </div>
+        </div>
+        <!-- 일반소비자 전용 필드 -->
+        <div id="v-ind-section" class="hidden">
+          <div class="form-row-2">
+            <div class="field">
+              <label>이름 <span class="req">*</span></label>
+              <input id="v-ind-name" type="text" placeholder="이름" />
+            </div>
+            <div class="field">
+              <label>전화번호</label>
+              <input id="v-ind-phone" type="text" placeholder="000-0000-0000" maxlength="13" />
+            </div>
+          </div>
+          <div class="form-row-2">
+            <div class="field">
+              <label>계좌번호</label>
+              <input id="v-ind-account" type="text" placeholder="계좌번호" maxlength="20" />
+            </div>
+            <div class="field">
+              <label>비고</label>
+              <input id="v-ind-notes" type="text" placeholder="비고" />
+            </div>
+          </div>
+        </div>
+        <!-- 기업 추가 필드 (매입거래처용) -->
+        <div id="v-comp-extra" class="hidden">
+          <div class="form-row-2">
+            <div class="field">
+              <label>담당자</label>
+              <input id="v-mgr-name" type="text" placeholder="담당자 이름" />
+            </div>
+            <div class="field">
+              <label>담당자전화번호</label>
+              <input id="v-mgr-phone" type="text" placeholder="000-0000-0000" maxlength="13" />
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label>이름 <span class="hint" id="v-name-hint" style="display:none">출고거래처 전용</span></label>
+          <input id="v-name" type="text" placeholder="대표자 이름 (선택)" />
+        </div>
+        <div class="field">
+          <label>상호명 <span class="req">*</span></label>
+          <input id="v-company" type="text" placeholder="상호명" required />
+        </div>
+        <div class="form-row-2">
+          <div class="field">
+            <label>사업자번호 <span class="hint">숫자만 입력</span></label>
+            <input id="v-biz" type="text" placeholder="000-00-00000" maxlength="12" />
+          </div>
+          <div class="field">
+            <label>전화번호 <span class="hint">숫자만 입력</span></label>
+            <input id="v-phone-inp" type="text" placeholder="000-0000-0000" maxlength="13" />
+          </div>
+        </div>
+        <div class="field">
+          <label>사업자등록 주소</label>
+          <input id="v-reg-addr" type="text" placeholder="사업자등록 주소" />
+        </div>
+        <div class="field">
+          <label class="label-with-check">
+            배송주소
+            <label class="check-inline">
+              <input type="checkbox" id="v-same-addr" /> 등록주소와 동일
+            </label>
+          </label>
+          <input id="v-del-addr" type="text" placeholder="배송주소" />
+        </div>
+        <div class="form-row-2">
+          <div class="field">
+            <label>특이사항</label>
+            <textarea id="v-notes" rows="3" placeholder="특이사항"></textarea>
+          </div>
+          <div class="field">
+            <label>비고</label>
+            <textarea id="v-remarks" rows="3" placeholder="비고"></textarea>
+          </div>
+        </div>
+        <!-- 출고거래처 전용: 계좌 정보 -->
+        <div id="v-sales-section" class="hidden">
+          <div class="v-section-divider">계좌 정보</div>
+          <div class="form-row-3">
+            <div class="field">
+              <label>은행명</label>
+              <select id="v-bank-name">
+                <option value="">선택 안 함</option>
+                <option value="국민">국민</option>
+                <option value="신한">신한</option>
+                <option value="우리">우리</option>
+                <option value="하나">하나</option>
+                <option value="기업">기업</option>
+                <option value="농협">농협</option>
+                <option value="카카오뱅크">카카오뱅크</option>
+                <option value="토스뱅크">토스뱅크</option>
+                <option value="SC제일">SC제일</option>
+                <option value="씨티">씨티</option>
+                <option value="우체국">우체국</option>
+                <option value="새마을금고">새마을금고</option>
+                <option value="신협">신협</option>
+                <option value="기타">기타</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>계좌번호 <span class="hint">숫자만 입력</span></label>
+              <input id="v-account-number" type="text" placeholder="000-000-000000" maxlength="18" autocomplete="off" />
+            </div>
+            <div class="field">
+              <label>예금주</label>
+              <input id="v-account-holder" type="text" placeholder="예금주명" />
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" id="btn-vendor-cancel">취소</button>
+      <button class="btn btn-primary" id="btn-vendor-save">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 관리자 비밀번호 강제 변경 모달 ═══════════════════════════ -->
+<div id="modal-admin-pw" class="modal-overlay hidden">
+  <div class="modal modal-sm">
+    <div class="modal-hd">
+      <h3 id="admin-pw-modal-title">비밀번호 변경</h3>
+      <button class="btn btn-ghost btn-xs" onclick="document.getElementById('modal-admin-pw').classList.add('hidden')">✕</button>
+    </div>
+    <div class="modal-bd">
+      <div class="field" style="margin-bottom:.5rem">
+        <label class="label">새 비밀번호</label>
+        <input type="password" id="admin-pw-new" class="inp" placeholder="새 비밀번호 (4자 이상)">
+      </div>
+      <div class="field">
+        <label class="label">비밀번호 확인</label>
+        <input type="password" id="admin-pw-confirm" class="inp" placeholder="비밀번호 확인">
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-admin-pw').classList.add('hidden')">취소</button>
+      <button class="btn btn-primary" onclick="submitAdminPw()">변경</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 삭제 확인 모달 (공용) ═══════════════════════════════════ -->
+<div id="modal-confirm" class="modal-overlay hidden">
+  <div class="modal modal-sm">
+    <div class="modal-hd">
+      <h3 id="confirm-title">삭제 확인</h3>
+    </div>
+    <div class="modal-bd">
+      <p id="confirm-msg" style="white-space:pre-line;line-height:1.7"></p>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" id="btn-confirm-cancel">취소</button>
+      <button class="btn btn-danger"  id="btn-confirm-ok">삭제</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 거래처 선택 팝업 (입고/출고/반품에서 호출) ═════════════ -->
+<div id="modal-vendor-picker" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-hd">
+      <h3 id="picker-modal-title">거래처 선택</h3>
+      <button class="btn-close" id="btn-picker-close">✕</button>
+    </div>
+    <div class="modal-bd">
+      <div class="field" style="margin-bottom:.75rem">
+        <input id="picker-search" type="text"
+          class="search-input" placeholder="상호명 검색..." />
+      </div>
+      <div class="table-wrap" style="max-height:320px;overflow-y:auto">
+        <table class="tbl">
+          <thead>
+            <tr><th>상호명</th><th>사업자번호</th><th>전화번호</th></tr>
+          </thead>
+          <tbody id="picker-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 매입가 수정이력 모달 ══════════════════════════════════ -->
+<div id="modal-price-history" class="modal-overlay hidden">
+  <div class="modal modal-sm">
+    <div class="modal-hd">
+      <h3 id="price-hist-title">매입가 수정이력</h3>
+      <button class="btn-close" id="btn-price-hist-close">✕</button>
+    </div>
+    <div class="modal-bd" style="padding:0">
+      <table class="tbl">
+        <thead>
+          <tr><th>변경일시</th><th>변경전</th><th>변경후</th><th>수정자</th></tr>
+        </thead>
+        <tbody id="price-hist-tbody">
+          <tr><td colspan="4" class="empty">이력이 없습니다.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" id="btn-price-hist-close2">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 엑셀 업로드 방식 선택 모달 ════════════════════════════════ -->
+<div id="modal-excel-upload-mode" class="modal-overlay hidden">
+  <div class="modal modal-sm">
+    <div class="modal-hd">
+      <h3>업로드 방식 선택</h3>
+      <button class="btn-close btn-excel-mode-cancel">✕</button>
+    </div>
+    <div class="modal-bd">
+      <p id="excel-mode-desc" style="margin-bottom:1.2rem;color:var(--gray-700);font-size:.9rem;white-space:pre-line"></p>
+      <div style="display:flex;flex-direction:column;gap:.75rem">
+        <button id="btn-excel-mode-replace" type="button"
+          style="text-align:left;padding:.75rem 1rem;border:1.5px solid var(--gray-300);border-radius:8px;background:#fff;cursor:pointer;width:100%">
+          <div style="font-weight:600;font-size:.92rem">새로 업로드</div>
+          <div style="font-size:.8rem;color:var(--gray-500);margin-top:.2rem">기존 내용 삭제 후 새로 업로드</div>
+        </button>
+        <button id="btn-excel-mode-append" type="button"
+          style="text-align:left;padding:.75rem 1rem;border:1.5px solid var(--primary,#4f6ef7);border-radius:8px;background:var(--primary-50,#eef1ff);cursor:pointer;width:100%">
+          <div style="font-weight:600;font-size:.92rem;color:var(--primary,#4f6ef7)">추가 업로드</div>
+          <div style="font-size:.8rem;color:var(--gray-500);margin-top:.2rem">기존 내용 유지 후 추가</div>
+        </button>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost btn-excel-mode-cancel" type="button">취소</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 출고 신규거래처 등록 모달 ════════════════════════════════ -->
+<div id="modal-ob-new-vendor" class="modal-overlay hidden">
+  <div class="modal modal-sm">
+    <div class="modal-hd">
+      <h3>신규 거래처 등록</h3>
+      <button class="btn-close" onclick="document.getElementById('modal-ob-new-vendor').classList.add('hidden')">✕</button>
+    </div>
+    <div class="modal-bd">
+      <div class="field">
+        <label>상호명 <span class="req">*</span></label>
+        <input id="ob-nv-company" type="text" placeholder="상호명" />
+      </div>
+      <div class="field" style="margin-top:.6rem">
+        <label>전화번호 <span class="req">*</span></label>
+        <input id="ob-nv-phone" type="text" placeholder="01012345678" />
+      </div>
+      <div class="field" style="margin-top:.6rem">
+        <label>이름</label>
+        <input id="ob-nv-name" type="text" placeholder="대표자 이름 (선택)" />
+      </div>
+      <div class="field" style="margin-top:.6rem">
+        <label>주소</label>
+        <input id="ob-nv-address" type="text" placeholder="주소 (선택)" />
+      </div>
+      <div class="field" style="margin-top:.6rem">
+        <label>사업자번호</label>
+        <input id="ob-nv-biz" type="text" placeholder="1234567890 (선택)" />
+      </div>
+      <div class="field" style="margin-top:.6rem">
+        <label>사업자등록증</label>
+        <input id="ob-nv-file" type="file" accept=".pdf,.jpg,.jpeg,.png" style="font-size:.85rem" />
+      </div>
+      <p style="margin-top:.5rem;font-size:.78rem;color:var(--gray-500)">* 필수입력</p>
+      <p id="ob-nv-err" class="msg-error hidden" style="margin-top:.4rem"></p>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-ob-new-vendor').classList.add('hidden')">취소</button>
+      <button class="btn btn-primary" onclick="obConfirmNewVendor()">등록</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 출고 모델명 드롭다운 (fixed position) ════════════════════ -->
+<div id="ob-model-dropdown" class="ob-model-dropdown hidden">
+  <table class="tbl" style="margin:0;border:none">
+    <thead>
+      <tr>
+        <th>구분</th><th>브랜드</th><th>모델명</th><th>스펙</th><th>상태</th><th>재고</th>
+      </tr>
+    </thead>
+    <tbody id="ob-model-dropdown-tbody"></tbody>
+  </table>
+</div>
+
+<!-- ══ 교환 모델명 드롭다운 (fixed position) ════════════════════ -->
+<div id="rt-model-dropdown" class="ob-model-dropdown hidden">
+  <table class="tbl" style="margin:0;border:none">
+    <thead>
+      <tr>
+        <th>구분</th><th>브랜드</th><th>모델명</th><th>스펙</th><th>상태</th><th>재고</th>
+      </tr>
+    </thead>
+    <tbody id="rt-model-dropdown-tbody"></tbody>
+  </table>
+</div>
+
+<!-- ══ 거래명세서 모달 ═══════════════════════════════════════════ -->
+<div id="modal-ob-statement" class="modal-overlay hidden">
+  <div class="modal" style="max-width:800px;width:95vw">
+    <div class="modal-hd">
+      <h3>거래명세서</h3>
+      <div style="display:flex;gap:.5rem">
+        <button class="btn btn-sm btn-primary" onclick="obPrintStatement()">인쇄 / PDF</button>
+        <button class="btn-close" onclick="document.getElementById('modal-ob-statement').classList.add('hidden')">✕</button>
+      </div>
+    </div>
+    <div class="modal-bd" id="ob-statement-content" style="padding:1rem"></div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-ob-statement').classList.add('hidden')">닫기</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ko.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/js/app.js"></script>
+<script src="/js/dashboard.js"></script>
+<script src="/js/inventory.js"></script>
+<script src="/js/inbound.js"></script>
+<script src="/js/outbound.js"></script>
+<script src="/js/company.js"></script>
+<script src="/js/returns.js"></script>
+<script src="/js/sales.js"></script>
+<script src="/js/trash.js"></script>
+<script src="/js/auditLog.js"></script>
+</body>
+</html>
